@@ -12,7 +12,10 @@ SpriteRenderer::~SpriteRenderer() {
 void SpriteRenderer::DrawSprite(Texture2D &texture, glm::vec2 position, glm::vec2 size, float rotate, glm::vec3 color) {
     this->shader.Use();
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(position, 0.0f));
+    // we can directly use glm::translate with position as point is at origin
+    // hence, the TOP LEFT vertex of the quad is equal to `position`
+    // i.e we consider the `position` for quad as equal to position of top left corner
+    model = glm::translate(model, glm::vec3(position, 0.0f)); 
 
     // rotation around center
     model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0));
