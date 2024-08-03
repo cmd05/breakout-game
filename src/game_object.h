@@ -13,6 +13,9 @@
 class GameObject {
 public:
     // object state
+    // for objects in our game velocity directly corresponds to (world_space_moved / second)
+    // which is equal to (screen_coords_moved / seconds) since both spaces have the same dimensions
+    // in our game
     glm::vec2 Position, Size, Velocity;
     glm::vec3 Color;
 

@@ -6,6 +6,8 @@
 #include <vector>
 
 #include "game_level.h"
+#include "game_object.h"
+#include "ball_object_collisions.h"
 
 // the globals are available to game.cpp
 
@@ -40,6 +42,11 @@ public:
     void ProcessInput(float dt);
     void Update(float dt);
     void Render();
+
+    bool CheckCollision(GameObject& one, GameObject& two);
+    bool CheckCollision(BallObject& one, GameObject& two);
+
+    void DoCollisions();
 };
 
 #endif
