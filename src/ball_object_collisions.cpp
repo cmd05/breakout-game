@@ -29,10 +29,10 @@ glm::vec2 BallObject::Move(float dt, unsigned int window_width) {
         }
 
         // testing: bottom window edge
-        if(this->Position.y >= 600.0f) {
-            this->Velocity.y = -this->Velocity.y;
-            this->Position.y = 600.0f;
-        }
+        // if(this->Position.y >= 600.0f) {
+        //     this->Velocity.y = -this->Velocity.y;
+        //     this->Position.y = 600.0f;
+        // }
     }
 
     return this->Position;
