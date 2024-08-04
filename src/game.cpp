@@ -5,6 +5,8 @@
 
 #include "particle_generator.h"
 
+#include "post_processor.h"
+
 #include <iostream>
 #include <glm/glm.hpp>
 
@@ -13,6 +15,9 @@ SpriteRenderer* Renderer;
 GameObject* Player;
 BallObject* Ball;
 ParticleGenerator* Particles;
+PostProcessor* Effects;
+
+float ShakeTime = 0.0f;
 
 Game::Game(unsigned int width, unsigned int height):
     State{GAME_ACTIVE}, Keys{}, Width{width}, Height{height} {}
@@ -28,7 +33,7 @@ void Game::Init() {
     // load shaders
     ResourceManager::LoadShader("shaders/sprite.vs", "shaders/sprite.fs", nullptr, "sprite");
     ResourceManager::LoadShader("shaders/particle.vs", "shaders/particle.fs", nullptr, "particle");
-    
+    ResourceManager::LoadShader("shaders/post_processing.vs", "shaders/post_processing.fs", nullptr, "postprocessing");
     // configure shaders
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(this->Width), static_cast<float>(this->Height), 0.0f, -1.0f, 1.0f);
 
@@ -50,6 +55,7 @@ void Game::Init() {
     // set render specific controls
     Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
     Particles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
+    Effects = new PostProcessor(ResourceManager::GetShader("postprocessing"), this->Width, this->Height);
 
     // load levels
     GameLevel one; one.Load("levels/one.lvl", this->Width, this->Height / 2);
@@ -80,6 +86,12 @@ void Game::Update(float dt) {
     DoCollisions();
     // update particles
     Particles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f));
+    // reduce shake time
+    if (ShakeTime > 0.0f) {
+        ShakeTime -= dt;
+        if (ShakeTime <= 0.0f)
+            Effects->Shake = false;
+    }
     // check loss condition
     if(Ball->Position.y >= this->Height) { // bottom edge
         this->ResetLevel();
@@ -114,6 +126,9 @@ void Game::ProcessInput(float deltaTime) {
 
 void Game::Render() {
     if(this->State == GAME_ACTIVE) {
+        // begin rendering to off screen renderer
+        Effects->BeginRender();
+
         // draw background
         Renderer->DrawSprite(ResourceManager::GetTexture("background"), glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f);
         // draw level
@@ -126,6 +141,10 @@ void Game::Render() {
         Particles->Draw();
         // draw ball
         Ball->Draw(*Renderer);
+
+        Effects->EndRender(); // copy to normal FBO
+
+        Effects->Render(glfwGetTime()); // render to screen
     }
 }
 
@@ -234,7 +253,11 @@ void Game::DoCollisions() {
             if(std::get<0>(collision)) {
                 if(!brick.IsSolid)
                     brick.Destroyed = true;
-
+                else {
+                    ShakeTime = 0.05f;
+                    Effects->Shake = true;
+                }
+                
                 // collision resolution
                 Direction dir = std::get<1>(collision); // up, down, left or right
                 glm::vec2 diff_vector = std::get<2>(collision); // difference of closest point from ball center
