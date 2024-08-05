@@ -8,6 +8,7 @@
 #include "game_level.h"
 #include "game_object.h"
 #include "ball_object_collisions.h"
+#include "power_up.h"
 
 // the globals are available to game.cpp
 
@@ -51,6 +52,7 @@ public:
     unsigned int Width, Height;
     std::vector<GameLevel> Levels;
     unsigned int Level;
+    std::vector<PowerUp> PowerUps;
     
     // constructor / destructor
     Game(unsigned int width, unsigned int height);
@@ -65,6 +67,10 @@ public:
 
     void ResetPlayer();
     void ResetLevel();
+
+    // powerups
+    void SpawnPowerUps(GameObject& block);
+    void UpdatePowerUps(float dt);
 private:
     bool CheckCollision(GameObject& one, GameObject& two);
     Collision CheckCollision(BallObject& one, GameObject& two);
