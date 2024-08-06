@@ -558,7 +558,7 @@ void Game::ActivatePowerUp(PowerUp& powerUp, unsigned int width) {
 
         for(int i = 0; i < this->Levels[this->Level].Bricks.size(); i++) {
             GameObject& brick = this->Levels[this->Level].Bricks[i];
-            if(!brick.Destroyed && bricksToExplode.size() < n && ShouldSpawn(chance))
+            if(!brick.Destroyed && !brick.IsSolid && bricksToExplode.size() < n && ShouldSpawn(chance))
                 bricksToExplode.push_back(&brick);
         }
 
