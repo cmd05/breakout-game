@@ -1,6 +1,9 @@
 #include <iostream>
-#include <glm/glm.hpp>
 #include <algorithm>
+
+#include <glm/glm.hpp>
+
+#include "miniaudio_split.h"
 
 #include "game.h"
 
@@ -17,23 +20,72 @@ BallObject* Ball;
 ParticleGenerator* Particles;
 PostProcessor* Effects;
 
+static ma_engine g_engine;
+static ma_result g_result;
+
 float ShakeTime = 0.0f;
 
 Game::Game(unsigned int width, unsigned int height):
     State{GAME_ACTIVE}, Keys{}, Width{width}, Height{height} {}
 
 Game::~Game() {
+    // clean audio resources
+    for(auto it : mySounds) {
+        ma_sound_stop(&it.second);
+        ma_sound_uninit(&it.second);
+    }
+
+    ma_engine_stop(&g_engine);
+    ma_engine_uninit(&g_engine);
+
     delete Renderer;
     delete Player;
     delete Ball;
     delete Particles;
 }
 
+void Game::init_audio() {
+    g_result = ma_engine_init(NULL, &g_engine);
+    
+    if (g_result != MA_SUCCESS)
+        throw std::runtime_error("Failed to initialize audio engine.");
+    
+    // load audio files
+    std::vector<std::string> audio_files = {"bleep.mp3", "breakout.mp3", "powerup.wav", "solid.wav"};
+
+    for(std::string file : audio_files) {
+        std::string name = file;
+        int n = name.length();
+        
+        for(std::string::reverse_iterator it = name.rbegin(); it != name.rend(); it++, n--)
+            if(*it == '.')
+                break;
+
+        name.resize(n-1);
+
+        mySounds[name];
+
+        std::string path = "./audio/";
+        path += file;
+
+        g_result = ma_sound_init_from_file(&g_engine, path.c_str(), MA_SOUND_FLAG_ASYNC , NULL, NULL, &mySounds[name]);
+        
+        if (g_result != MA_SUCCESS) {
+            std::cout << "Failed to initialize sound: " << path << std::endl;
+            throw std::runtime_error("MINIAUDIO_USER::ERROR");
+        }
+    }
+}
+
 void Game::Init() {
+    // Initialize audio engine
+    init_audio();
+
     // load shaders
     ResourceManager::LoadShader("shaders/sprite.vs", "shaders/sprite.fs", nullptr, "sprite");
     ResourceManager::LoadShader("shaders/particle.vs", "shaders/particle.fs", nullptr, "particle");
     ResourceManager::LoadShader("shaders/post_processing.vs", "shaders/post_processing.fs", nullptr, "postprocessing");
+    
     // configure shaders
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(this->Width), static_cast<float>(this->Height), 0.0f, -1.0f, 1.0f);
 
@@ -84,6 +136,10 @@ void Game::Init() {
     // ball
     glm::vec2 ballPos = playerPos + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
     Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("face"));
+
+    // audio
+    ma_sound_start(&mySounds["breakout"]);
+    ma_sound_set_looping(&mySounds["breakout"], MA_TRUE);
 }
 
 void Game::Update(float dt) {
@@ -382,9 +438,11 @@ void Game::DoCollisions() {
                 if(!brick.IsSolid) {
                     brick.Destroyed = true;
                     this->SpawnPowerUps(brick);
+                    ma_sound_start(&mySounds["bleep"]);        
                 } else {
                     ShakeTime = 0.05f;
                     Effects->Shake = true;
+                    ma_sound_start(&mySounds["solid"]);        
                 }
                 
                 // collision resolution
@@ -447,6 +505,7 @@ void Game::DoCollisions() {
                 ActivatePowerUp(powerUp);
                 powerUp.Destroyed = true;
                 powerUp.Activated = true;
+                ma_sound_start(&mySounds["powerup"]);
             }
         }
     }
@@ -478,5 +537,7 @@ void Game::DoCollisions() {
 
         // if Sticky powerup is activated, also stick ball to paddle once new velocity vectors were calculated
         Ball->Stuck = Ball->Sticky;
+
+        ma_sound_start(&mySounds["bleep"]);
     }
 }

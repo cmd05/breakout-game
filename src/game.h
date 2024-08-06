@@ -5,6 +5,8 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 
+#include "miniaudio_split.h"
+
 #include "game_level.h"
 #include "game_object.h"
 #include "ball_object_collisions.h"
@@ -53,12 +55,14 @@ public:
     std::vector<GameLevel> Levels;
     unsigned int Level;
     std::vector<PowerUp> PowerUps;
-    
+    std::map<std::string, ma_sound> mySounds;
+
     // constructor / destructor
     Game(unsigned int width, unsigned int height);
     ~Game();
     // initialize game state (load all shaders / textures / levels)
     void Init();
+    void init_audio();
     // game loop
     void ProcessInput(float dt);
     void Update(float dt);
@@ -74,7 +78,6 @@ public:
 private:
     bool CheckCollision(GameObject& one, GameObject& two);
     Collision CheckCollision(BallObject& one, GameObject& two);
-
 };
 
 #endif
