@@ -3,7 +3,7 @@
 #include <iostream>
 
 PostProcessor::PostProcessor(Shader shader, unsigned int width, unsigned int height)
-    : PostProcessingShader(shader), Texture(), Width(width), Height(height), Confuse(false), Chaos(false), Shake(false) {
+    : PostProcessingShader(shader), Texture(), Width(width), Height(height), Confuse(false), Chaos(false), Shake(false), Grayscale(false) {
     glGenFramebuffers(1, &this->MSFBO);
     glGenFramebuffers(1, &this->FBO);
     glGenRenderbuffers(1, &this->RBO);
@@ -92,6 +92,7 @@ void PostProcessor::Render(float time) {
     this->PostProcessingShader.SetInteger("confuse", this->Confuse);
     this->PostProcessingShader.SetInteger("chaos", this->Chaos);
     this->PostProcessingShader.SetInteger("shake", this->Shake);
+    this->PostProcessingShader.SetInteger("grayscale", this->Grayscale);
 
     // render screen quad with the color texture
     glActiveTexture(GL_TEXTURE0);

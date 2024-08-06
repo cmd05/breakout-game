@@ -10,6 +10,7 @@ uniform float blur_kernel[9];
 uniform bool chaos;
 uniform bool confuse;
 uniform bool shake;
+uniform bool grayscale;
 
 void main() {
     // set to zero, as `out` variable is initialized with undefined values by default 
@@ -34,6 +35,9 @@ void main() {
             color += vec4(sample[i] * blur_kernel[i], 0.0f);
         
         color.a = 1.0f;
+    } else if(grayscale) {
+        vec3 grayscale_transform = vec3(0.3,0.59,0.11);
+        color = vec4(vec3(dot(grayscale_transform, texture(scene, TexCoords).rgb)), 1.0);
     } else {
         color = texture(scene, TexCoords);
     }

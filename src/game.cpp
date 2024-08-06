@@ -61,7 +61,7 @@ void Game::init_audio() {
         throw std::runtime_error("Failed to initialize audio engine.");
     
     // load audio files
-    std::vector<std::string> audio_files = {"bleep.mp3", "breakout.mp3", "powerup.wav", "solid.wav", "fireworks.mp3"};
+    std::vector<std::string> audio_files = {"bleep.mp3", "breakout.mp3", "powerup.wav", "solid.wav", "fireworks.mp3", "game-won.wav", "game-lost.wav"};
 
     for(std::string file : audio_files) {
         std::string name = file;
@@ -229,7 +229,10 @@ void Game::Update(float dt) {
 
         if(this->Lives == 0) {
             this->ResetLevel();
-            this->State = GAME_MENU;
+            // this->State = GAME_MENU;
+            Effects->Grayscale = true;
+            this->State = GAME_LOST;
+            ma_sound_start(&mySounds["game-lost"]);
         }
 
         this->ResetPlayer();
@@ -240,6 +243,8 @@ void Game::Update(float dt) {
         this->ResetLevel();
         this->ResetPlayer();
         Effects->Chaos = true; // celebration effect
+        
+        ma_sound_start(&mySounds["game-won"]);
         this->State = GAME_WIN;
     }
 }
@@ -273,6 +278,14 @@ void Game::ProcessInput(float deltaTime) {
         if(this->Keys[GLFW_KEY_ENTER]) {
             this->KeysProcessed[GLFW_KEY_ENTER] = true;
             Effects->Chaos = false; // disable celebration effect
+            this->State = GAME_MENU;
+        }
+    }
+    
+    if(this->State == GAME_LOST) {
+        if(this->Keys[GLFW_KEY_ENTER]) {
+            this->KeysProcessed[GLFW_KEY_ENTER] = true;
+            Effects->Grayscale = false; // disable celebration effect
             this->State = GAME_MENU;
         }
     }
@@ -344,7 +357,12 @@ void Game::Render() {
     }
     if (this->State == GAME_WIN)
     {
-        Text->RenderText("You WON!!!", 320.0f, this->Height / 2.0f - 20.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+        Text->RenderText("YOU WON!!!1!", 320.0f, this->Height / 2.0f - 20.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+        Text->RenderText("Press ENTER to retry or ESC to quit", 130.0f, this->Height / 2.0f, 1.0f, glm::vec3(1.0f, 1.0f, 0.0f));
+    }
+    if (this->State == GAME_LOST)
+    {
+        Text->RenderText("YOU DEER :(", 320.0f, this->Height / 2.0f - 20.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
         Text->RenderText("Press ENTER to retry or ESC to quit", 130.0f, this->Height / 2.0f, 1.0f, glm::vec3(1.0f, 1.0f, 0.0f));
     }
 }
@@ -366,7 +384,7 @@ void Game::ResetLevel()
 void Game::ResetPlayer() {
     // reset player / ball stats
     Player->Size = PLAYER_SIZE;
-    Player->Position = glm::vec2(this->Width, this->Height) - (PLAYER_SIZE / 2.0f);
+    Player->Position = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
     
     Ball->Radius = BALL_RADIUS;
     Ball->Size = glm::vec2(BALL_RADIUS * 2.0f, BALL_RADIUS * 2.0f);
