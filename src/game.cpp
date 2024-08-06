@@ -28,6 +28,12 @@ static ma_result g_result;
 
 float ShakeTime = 0.0f;
 
+const float explosionWait = 3;
+int explosionColor = 1;
+float explosionTime = explosionWait;
+bool will_explode = false;
+std::vector<GameObject*> bricksToExplode = {};
+
 Game::Game(unsigned int width, unsigned int height):
     State{GAME_ACTIVE}, Keys{}, Width{width}, Height{height}, Level{0}, Lives{3} {}
 
@@ -55,7 +61,7 @@ void Game::init_audio() {
         throw std::runtime_error("Failed to initialize audio engine.");
     
     // load audio files
-    std::vector<std::string> audio_files = {"bleep.mp3", "breakout.mp3", "powerup.wav", "solid.wav"};
+    std::vector<std::string> audio_files = {"bleep.mp3", "breakout.mp3", "powerup.wav", "solid.wav", "fireworks.mp3"};
 
     for(std::string file : audio_files) {
         std::string name = file;
@@ -82,6 +88,8 @@ void Game::init_audio() {
 }
 
 void Game::Init() {
+    srand(time(NULL));
+    
     // Initialize audio engine
     init_audio();
 
@@ -116,6 +124,7 @@ void Game::Init() {
     ResourceManager::LoadTexture("textures/powerup_passthrough.png", true, "powerup_passthrough");
     ResourceManager::LoadTexture("textures/powerup_ball-decrease.png", true, "powerup_ball-decrease");
     ResourceManager::LoadTexture("textures/powerup_ball-increase.png", true, "powerup_ball-increase");
+    ResourceManager::LoadTexture("textures/powerup_fireworks.png", true, "powerup_fireworks");
 
     // set render specific controls
     Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
@@ -152,6 +161,23 @@ void Game::Init() {
     this->State = GAME_MENU;
 }
 
+void Game::fireworks_explosion() {
+    bool explosionEffect = false;
+
+    for(GameObject* brick : bricksToExplode) {
+        if(!brick->Destroyed && !explosionEffect) explosionEffect = true;
+        brick->Destroyed = true; // some bricks may already be destroyed by player
+                                 // but this should not have an effect
+    }
+
+    if(explosionEffect) {
+        ma_sound_start(&mySounds["fireworks"]);
+        
+        ShakeTime = 0.25f;
+        Effects->Shake = true;
+    }
+}
+
 void Game::Update(float dt) {
     // ball movement
     Ball->Move(dt, Width);
@@ -166,6 +192,35 @@ void Game::Update(float dt) {
         ShakeTime -= dt;
         if (ShakeTime <= 0.0f)
             Effects->Shake = false;
+    }
+    
+    // explosion
+    if(will_explode) {
+        explosionTime -= dt;
+        
+        // change light color each step
+        // glm::vec3 col {0.78f, 0.4f, 0.1f};
+        glm::vec3 col {1.0f, 0.f, 0.0f};
+
+        if(!explosionColor)
+            // col = {0.8f, 0.8f, 0.1f};
+            col = {0.0f, 0.0f, 1.0f};
+
+        explosionColor = !explosionColor;
+
+        for(GameObject* brick : bricksToExplode)
+            if(!brick->Destroyed)
+                brick->Color = col;
+
+        if(explosionTime <= 0.0f) {
+            fireworks_explosion();
+
+            // clean up
+            will_explode = false;
+            explosionTime = 0.0f;
+            explosionColor = 1;
+            bricksToExplode.clear();
+        }
     }
     
     // check loss condition
@@ -312,6 +367,9 @@ void Game::ResetPlayer() {
     // reset player / ball stats
     Player->Size = PLAYER_SIZE;
     Player->Position = glm::vec2(this->Width, this->Height) - (PLAYER_SIZE / 2.0f);
+    
+    Ball->Radius = BALL_RADIUS;
+    Ball->Size = glm::vec2(BALL_RADIUS * 2.0f, BALL_RADIUS * 2.0f);
     glm::vec2 ballPos {Player->Position.x + (PLAYER_SIZE.x / 2.0f) - Ball->Radius, Player->Position.y - 2 * Ball->Radius};
     Ball->Reset(ballPos, INITIAL_BALL_VELOCITY);
 
@@ -390,6 +448,16 @@ void Game::UpdatePowerUps(float dt) {
                         Ball->Size = glm::vec2(BALL_RADIUS * 2.0f, BALL_RADIUS * 2.0f);
                     }
                 }
+
+                // handled by fireworks_explosion()
+                // else if (powerUp.Type == "fireworks")
+                // {
+                //     if (!IsOtherPowerUpActive(this->PowerUps, "fireworks"))
+                //     {	
+                //         will_explode = false;
+                //         explosionTime = 0.0f;
+                //     }
+                // }
             }
         }
 
@@ -421,16 +489,23 @@ void Game::SpawnPowerUps(GameObject& block) {
         this->PowerUps.push_back(PowerUp("pad-size-increase", glm::vec3(1.0f, 0.6f, 0.4), 0.0f, block.Position, ResourceManager::GetTexture("powerup_increase")));
     if (ShouldSpawn(positive_chance))
         this->PowerUps.push_back(PowerUp("ball-decrease", glm::vec3(1.0f, 0.3f, 0.3f), 20.0f, block.Position, ResourceManager::GetTexture("powerup_ball-decrease")));
-    
-    if (ShouldSpawn(neg_chance))
+    if (ShouldSpawn(positive_chance / 2))
+        this->PowerUps.push_back(PowerUp("fireworks", glm::vec3(0.96f, 0.47f, 0.25f), explosionWait, block.Position, ResourceManager::GetTexture("powerup_fireworks")));
+    if (ShouldSpawn(positive_chance))
         this->PowerUps.push_back(PowerUp("ball-increase", glm::vec3(1.0f, 0.6f, 0.4), 10.0f, block.Position, ResourceManager::GetTexture("powerup_ball-increase")));
+    
     if (ShouldSpawn(neg_chance)) // Negative powerups should spawn more often
         this->PowerUps.push_back(PowerUp("confuse", glm::vec3(1.0f, 0.3f, 0.3f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_confuse")));
-    if (ShouldSpawn(50))
+    if (ShouldSpawn(neg_chance))
         this->PowerUps.push_back(PowerUp("chaos", glm::vec3(0.9f, 0.25f, 0.25f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_chaos")));
 }
 
-void ActivatePowerUp(PowerUp& powerUp, unsigned int width) {
+int randrange(int min, int max) // range : [min, max]
+{
+   return min + rand() % ((max + 1) - min);
+}
+
+void Game::ActivatePowerUp(PowerUp& powerUp, unsigned int width) {
     if(powerUp.Type == "speed")
         Ball->Velocity *= 1.2;
     else if(powerUp.Type == "sticky") {
@@ -454,6 +529,21 @@ void ActivatePowerUp(PowerUp& powerUp, unsigned int width) {
     } else if(powerUp.Type == "ball-decrease") {
         Ball->Radius /= 2;
         Ball->Size /= 2;
+    } else if(powerUp.Type == "fireworks" && !will_explode) {
+        // for simplicity don't allow queued explosions
+        will_explode = true;
+        explosionTime = explosionWait;
+
+        // random brick selection logic - explode upto n bricks
+        int n = randrange(1, 7);
+        int chance = this->Levels[this->Level].Bricks.size() / n;
+
+        for(int i = 0; i < this->Levels[this->Level].Bricks.size(); i++) {
+            GameObject& brick = this->Levels[this->Level].Bricks[i];
+            if(!brick.Destroyed && bricksToExplode.size() < n && ShouldSpawn(chance))
+                bricksToExplode.push_back(&brick);
+        }
+
     }
 }
 

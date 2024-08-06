@@ -78,6 +78,10 @@ public:
     // powerups
     void SpawnPowerUps(GameObject& block);
     void UpdatePowerUps(float dt);
+
+    // explosion effect requires audio
+    void fireworks_explosion();
+    void ActivatePowerUp(PowerUp& powerUp, unsigned int width);
 private:
     bool CheckCollision(GameObject& one, GameObject& two);
     Collision CheckCollision(BallObject& one, GameObject& two);
