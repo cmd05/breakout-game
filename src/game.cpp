@@ -499,15 +499,15 @@ void Game::SpawnPowerUps(GameObject& block) {
 
     if (ShouldSpawn(positive_chance)) 
         this->PowerUps.push_back(PowerUp("speed", glm::vec3(0.5f, 0.5f, 1.0f), 0.0f, block.Position, ResourceManager::GetTexture("powerup_speed")));
-    // if (ShouldSpawn(positive_chance))
-    //     this->PowerUps.push_back(PowerUp("sticky", glm::vec3(1.0f, 0.5f, 1.0f), 20.0f, block.Position, ResourceManager::GetTexture("powerup_sticky")));
+    if (ShouldSpawn(positive_chance))
+        this->PowerUps.push_back(PowerUp("sticky", glm::vec3(1.0f, 0.5f, 1.0f), 20.0f, block.Position, ResourceManager::GetTexture("powerup_sticky")));
     if (ShouldSpawn(positive_chance))
         this->PowerUps.push_back(PowerUp("pass-through", glm::vec3(0.5f, 1.0f, 0.5f), 10.0f, block.Position, ResourceManager::GetTexture("powerup_passthrough")));
     if (ShouldSpawn(positive_chance))
         this->PowerUps.push_back(PowerUp("pad-size-increase", glm::vec3(1.0f, 0.6f, 0.4), 0.0f, block.Position, ResourceManager::GetTexture("powerup_increase")));
     if (ShouldSpawn(positive_chance))
         this->PowerUps.push_back(PowerUp("ball-decrease", glm::vec3(1.0f, 0.3f, 0.3f), 20.0f, block.Position, ResourceManager::GetTexture("powerup_ball-decrease")));
-    if (ShouldSpawn(positive_chance / 2))
+    if (ShouldSpawn(positive_chance))
         this->PowerUps.push_back(PowerUp("fireworks", glm::vec3(0.96f, 0.47f, 0.25f), explosionWait, block.Position, ResourceManager::GetTexture("powerup_fireworks")));
     if (ShouldSpawn(positive_chance))
         this->PowerUps.push_back(PowerUp("ball-increase", glm::vec3(1.0f, 0.6f, 0.4), 10.0f, block.Position, ResourceManager::GetTexture("powerup_ball-increase")));
