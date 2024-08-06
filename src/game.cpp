@@ -267,11 +267,6 @@ void Game::ProcessInput(float deltaTime) {
             
             this->KeysProcessed[GLFW_KEY_S] = true;
         }
-
-        // if(this->Keys[GLFW_KEY_P] && !this->KeysProcessed[GLFW_KEY_P]) {
-        //     this->State = GAME_ACTIVE;
-        //     this->KeysProcessed[GLFW_KEY_P] = true;
-        // }
     }
 
     if(this->State == GAME_WIN) {
@@ -308,11 +303,6 @@ void Game::ProcessInput(float deltaTime) {
                     Ball->Position.x += distance;
             }
         }
-
-        // if(this->Keys[GLFW_KEY_P] && !this->KeysProcessed[GLFW_KEY_P]) {
-        //     this->State = GAME_MENU;
-        //     this->KeysProcessed[GLFW_KEY_P] = true;
-        // }
 
         if(this->Keys[GLFW_KEY_SPACE])
             Ball->Stuck = false;
