@@ -6,6 +6,8 @@ Breakout game inspired by [Breakout](https://en.wikipedia.org/wiki/Breakout_(vid
 - Game loss screen
 - Fix maximum paddle width on size increase
 
+To try the extra level, replace content of `levels/one.lvl` with `extra.lvl`.
+
 Demo (unmute video sound):
 
 https://github.com/user-attachments/assets/7431807b-994c-4718-8363-a427e68e2dfb
