@@ -3,10 +3,6 @@ project(breakout)
 
 set(INCLUDES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/includes)
 
-###########################################################
-# 3RD PARTY LIBRARIES
-###########################################################
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
