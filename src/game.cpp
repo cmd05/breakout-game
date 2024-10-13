@@ -75,7 +75,7 @@ void Game::init_audio() {
 
         mySounds[name];
 
-        std::string path = "./audio/";
+        std::string path = std::string(FS_SRC_PATH) + "audio/";
         path += file;
 
         g_result = ma_sound_init_from_file(&g_engine, path.c_str(), MA_SOUND_FLAG_ASYNC , NULL, NULL, &mySounds[name]);
@@ -131,13 +131,13 @@ void Game::Init() {
     Particles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
     Effects = new PostProcessor(ResourceManager::GetShader("postprocessing"), this->Width, this->Height);
     Text = new TextRenderer(this->Width, this->Height);
-    Text->Load("fonts/OCRAEXT.ttf", 24);
+    Text->Load(std::string(FS_SRC_PATH) + "fonts/OCRAEXT.ttf", 24);
 
     // load levels
-    GameLevel one; one.Load("levels/one.lvl", this->Width, this->Height / 2);
-    GameLevel two; two.Load("levels/two.lvl", this->Width, this->Height / 2);
-    GameLevel three; three.Load("levels/three.lvl", this->Width, this->Height / 2);
-    GameLevel four; four.Load("levels/four.lvl", this->Width, this->Height / 2);
+    GameLevel one; one.Load((std::string(FS_SRC_PATH) + "levels/one.lvl").c_str(), this->Width, this->Height / 2);
+    GameLevel two; two.Load((std::string(FS_SRC_PATH) + "levels/two.lvl").c_str(), this->Width, this->Height / 2);
+    GameLevel three; three.Load((std::string(FS_SRC_PATH) + "levels/three.lvl").c_str(), this->Width, this->Height / 2);
+    GameLevel four; four.Load((std::string(FS_SRC_PATH) + "levels/four.lvl").c_str(), this->Width, this->Height / 2);
 
     this->Levels.push_back(one);
     this->Levels.push_back(two);
