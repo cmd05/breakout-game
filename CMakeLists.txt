@@ -16,13 +16,9 @@ add_executable(breakout)
 target_compile_options(
     breakout
     PRIVATE
-    # -fno-exceptions
     -fdiagnostics-color=always
     -Wall
     # -Wno-reorder
-    # -Wno-unknown-pragmas
-    # -Wno-error=unknown-pragmas
-    # Wno-unknown-pragmas
 )
 
 target_sources(
