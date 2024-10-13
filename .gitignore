@@ -2,3 +2,4 @@ resources/
 .vscode/
 *.exe
 /test.cpp
+build/
