@@ -8,6 +8,18 @@ Breakout game inspired by [Breakout](https://en.wikipedia.org/wiki/Breakout_(vid
 
 To try the extra level, replace content of `levels/one.lvl` with `extra.lvl`.
 
-Demo (unmute video sound):
+# Building
+
+The game can be built using CMake.
+```
+cmake -B build
+cmake --build build
+```
+
+Currently the game uses prebuilt static libraries for the build process.
+
+
+# Demo
+Unmute the video sound for the gameplay music.
 
 https://github.com/user-attachments/assets/7431807b-994c-4718-8363-a427e68e2dfb
